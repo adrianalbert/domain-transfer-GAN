@@ -1,11 +1,10 @@
 import torch
 import torch.utils.data
 import os.path
-from PIL import Image
 import random
-import io
 import torchvision.transforms as transforms
 import numpy as np
+from skimage.transform import resize
 
 DEV_SIZE = 200
 
@@ -184,9 +183,9 @@ class NumpyDataset(object):
             mem_B_paths = []
             for A, B in zip(self.A_paths, self.B_paths):
                 with open(A, 'rb') as fa:
-                    mem_A_paths.append(np.load(fa))
+                    mem_A_paths.append(np.load(fa)['data'])
                 with open(B, 'rb') as fb:
-                    mem_B_paths.append(np.load(fb))
+                    mem_B_paths.append(np.load(fb)['data'])
             self.A_paths = mem_A_paths
             self.B_paths = mem_B_paths
 
@@ -233,19 +232,12 @@ class DataLoader(object):
         return len(self.dataset)
 
 def get_transform(opt):
-    transform_list = [transforms.Scale([64, 64], Image.BICUBIC)]
+    transform_list = [transforms.Lambda(lambda img: resize(img, (opt.grid_size,opt.grid_size), preserve_range=True))]
     transform_list += [transforms.ToTensor(),
                        transforms.Normalize((0.5, 0.5, 0.5),
                                             (0.5, 0.5, 0.5))]
     return transforms.Compose(transform_list)
 
-def __scale_width(img, target_width):
-    ow, oh = img.size
-    if (ow == target_width):
-        return img
-    w = target_width
-    h = int(target_width * oh / ow)
-    return img.resize((w, h), Image.BICUBIC)
 
 IMG_EXTENSIONS = ['.npz', '.npy']
 

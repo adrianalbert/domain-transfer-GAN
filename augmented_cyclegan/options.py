@@ -27,6 +27,7 @@ class TrainOptions(object):
         # data
         self.parser.add_argument('--input_nc', type=int, default=3, help='# of input image channels')
         self.parser.add_argument('--output_nc', type=int, default=3, help='# of output image channels')
+        self.parser.add_argument('--grid_size', type=int, default=256, help='resolution of input/output grids')
         self.parser.add_argument('--numpy_data', type=int, choices=[0,1], default=1, help='use numpy data instead of default JPEG images')
 
         # exp
