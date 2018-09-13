@@ -11,11 +11,16 @@ DEV_SIZE = 200
 def load_numpy_data(root, shuffle=True):
     """loads in memory numpy data files"""
     def _load(fname):
-        arr = np.load(os.path.join(root, fname))
+        arr = np.load(os.path.join(root, fname))['data']
+        # replace NaNs with 0
+        arr = np.nan_to_num(arr)
+        if arr.ndim == 3:
+            arr = np.expand_dims(arr, axis=2)
+        means = np.nanmean(arr, axis=(0,1,2))
+        # scale and shift to [-1,1]
+        arr = arr / means - 1.
         # convert data from b,0,1,c to b,c,0,1
         arr = np.transpose(arr, (0,3,1,2))
-        # scale and shift to [-1,1]
-        arr = arr / 127.5 - 1.
         return arr.astype('float32')
 
     print "loading data numpy files..."
