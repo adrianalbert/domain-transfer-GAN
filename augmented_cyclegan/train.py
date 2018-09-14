@@ -13,7 +13,7 @@ from options import TrainOptions, create_sub_dirs
 from dataloader import DataLoader, load_numpy_data, AlignedIterator, UnalignedIterator
 from model import StochCycleGAN, AugmentedCycleGAN
 import numpy as np
-from evaluate import eval_mse_A, eval_ubo_B
+from evaluate import eval_mse_A, eval_ubo_B, one_to_three_channels
 import shutil
 import random
 import glob
@@ -47,7 +47,7 @@ def format_log(epoch, i, errors, t, prefix=True):
 def visualize_cycle(opt, real_A, visuals, eidx, uidx, train):
     size = real_A.size()
 
-    images = [img.cpu().unsqueeze(1) for img in visuals.values()]
+    images = [one_to_three_channels(img.cpu()).unsqueeze(1) for img in visuals.values()]
     vis_image = torch.cat(images, dim=1).view(size[0]*len(images),size[1],size[2],size[3])
     if train:
         save_path = opt.train_vis_cycle
