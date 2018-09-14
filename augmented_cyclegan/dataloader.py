@@ -4,21 +4,31 @@ import os.path
 import random
 import torchvision.transforms as transforms
 import numpy as np
+from numpy import inf
+
 from skimage.transform import resize
 
 DEV_SIZE = 200
 
-def load_numpy_data(root, shuffle=True):
+def load_numpy_data(root, shuffle=True, grid_size=None):
     """loads in memory numpy data files"""
     def _load(fname):
-        arr = np.load(os.path.join(root, fname))['data']
+        print "Loading %s" % root
+        arr = np.load(os.path.join(root, fname))['data'][...,:3]
         # replace NaNs with 0
         arr = np.nan_to_num(arr)
         if arr.ndim == 3:
             arr = np.expand_dims(arr, axis=2)
         means = np.nanmean(arr, axis=(0,1,2))
         # scale and shift to [-1,1]
-        arr = arr / means - 1.
+        arr = -1 + 2 * (arr - arr.min((1,2))[:, np.newaxis,np.newaxis]) / (arr.max((1,2))[:, np.newaxis,np.newaxis] - arr.min((1,2))[:, np.newaxis,np.newaxis])
+        arr = np.nan_to_num(arr); arr[arr == inf] = 0; arr[arr == -inf] = 0
+        if grid_size is not None:
+            new_arr = []
+            print "Resizing data to %d" % grid_size
+            for x in arr:
+                new_arr.append(resize(x, (grid_size,grid_size)))
+            arr = np.stack(new_arr)
         # convert data from b,0,1,c to b,c,0,1
         arr = np.transpose(arr, (0,3,1,2))
         return arr.astype('float32')
@@ -131,6 +141,8 @@ class UnalignedIterator(object):
             raise StopIteration
 
         idx = self.batch_idx * self.batch_size
+        if idx+self.batch_size >= len(self.data_indices[0]):
+            idx = len(self.data_indices[0]) - self.batch_size
         chosen_indices_A = self.data_indices[0][idx:idx+self.batch_size]
         chosen_indices_B = self.data_indices[1][idx:idx+self.batch_size]
 
@@ -193,6 +205,7 @@ class NumpyDataset(object):
                     mem_B_paths.append(np.load(fb)['data'])
             self.A_paths = mem_A_paths
             self.B_paths = mem_B_paths
+            print len(self.A_paths), self.A_paths[0]
 
         self.A_size = len(self.A_paths)
         self.B_size = len(self.B_paths)
@@ -206,6 +219,7 @@ class NumpyDataset(object):
             index_B = index % self.A_size
         B_path = self.B_paths[index_B]
         # print('(A, B) = (%d, %d)' % (index_A, index_B))
+        print A_path, B_path
         A_img = np.load(A_path)['data']
         B_img = np.load(B_path)['data']
 

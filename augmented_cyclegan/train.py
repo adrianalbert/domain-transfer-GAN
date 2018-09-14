@@ -108,7 +108,7 @@ def train_model():
             torch.cuda.manual_seed_all(opt.seed)
 
     if opt.numpy_data:
-        trainA, trainB, devA, devB, testA, testB = load_numpy_data(opt.dataroot)
+        trainA, trainB, devA, devB, testA, testB = load_numpy_data(opt.dataroot, grid_size=opt.grid_size)
         train_dataset = UnalignedIterator(trainA, trainB, batch_size=opt.batchSize)
         print_log(out_f, '#training images = %d' % len(train_dataset))
         vis_inf = False
@@ -199,6 +199,8 @@ def train_model():
                 real_A = real_A.cuda()
                 real_B = real_B.cuda()
                 prior_z_B = prior_z_B.cuda()
+
+            # print data['A'].size(), data['B'].size()
 
             if opt.monitor_gnorm:
                 losses, visuals, gnorms = model.train_instance(real_A, real_B, prior_z_B)

@@ -84,9 +84,7 @@ def variational_ubo(model, real_A, real_B, steps, visualize=False, vis_name=None
             vis_z_B = mu.view(mu.size(0), mu.size(1), 1, 1)[:vis_batch]
         vis_B = model.predict_B(real_A[:vis_batch], vis_z_B)
         save_path = os.path.join(vis_path, '%s_0.png' % vis_name)
-        visualize_data(model.opt, [real_A.data[:vis_batch], real_B.data[:vis_batch],
-                                   vis_B.data],
-                       vis_size, save_path)
+        visualize_data(model.opt, [real_A.data[:vis_batch], real_B.data[:vis_batch], vis_B.data], vis_size, save_path)
 
     # ubo_val = None
     for i in range(steps):
@@ -154,8 +152,17 @@ def nats2bpp(nats, nc, npx):
     return bpp
 
 
+def one_to_three_channels(img):
+    # assumes a N,C,H,W format
+    if img.size()[1]==1:
+        return torch.cat((img.float(), torch.from_numpy(np.zeros(img.size())).float(), torch.from_numpy(np.zeros(img.size())).float()), 
+          dim=1)
+    else: 
+        return img
+
 def visualize_data(opt, data, size, save_path):
-    images = [img.cpu().unsqueeze(1) for img in data]
+    images = [one_to_three_channels(img.cpu()).unsqueeze(1) for img in data]
+    # print set([img.size() for img in images])
     vis_image = torch.cat(images, dim=1).view(size[0]*len(images),size[1],size[2],size[3])
-    vutils.save_image(vis_image.cpu(), save_path,
+    vutils.save_image(vis_image.cpu()[...,:3], save_path,
         normalize=True, range=(-1,1), nrow=len(images))
