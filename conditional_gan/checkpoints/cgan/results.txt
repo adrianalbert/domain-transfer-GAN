@@ -1,0 +1,4 @@
+#training images = 3014
+#test images = 804
+#dev images = 200
+model [AugmentedCycleGAN] was created

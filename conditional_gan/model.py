@@ -14,6 +14,8 @@ import math
 from skimage.transform import resize
 
 
+
+
 oceanMask = resize(np.load("OceanMask.npy"), (64, 64))
 
 
@@ -150,12 +152,12 @@ class StochCondGan(object):
 
         pred_fake_B = self.netD_B.forward(torch.cat((real_A, fake_B), 1).detach())
         loss_G_B = self.criterionGAN(pred_fake_B, True)
-        loss_G_B_l1 = self.criterionL1(fake_B, real_B)*100
+        loss_G_B_l1 = self.criterionL1(fake_B, real_B)*lambdaL1
         #print(fake_B.shape)
         #print(oceanMask.shape)
         fin_mask = torch.from_numpy(np.tile(oceanMask, (fake_B.shape[0], 1, 1, 1)).astype(np.float32)).cuda()
 
-        loss_G_Ocean_mask = self.criterionL1(fake_B*fin_mask, -fin_mask) * 1000
+        loss_G_Ocean_mask = self.criterionL1(fake_B*fin_mask, -fin_mask) * lambdaOcean
 
 
         ##### Generation and Encoder optimization
@@ -182,6 +184,9 @@ class StochCondGan(object):
         visuals = OrderedDict([('real_A', real_A.data), ('real_B', real_B.data), ('fake_B', fake_B.data)])
         return visuals
 
+    def generate_fwd(self, real_A):
+        return self.netG_A_B.forward(real_A)
+        
 
     def predict_B(self, real_A, z_B):
         if self.ignore_noise:

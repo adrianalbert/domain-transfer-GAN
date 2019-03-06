@@ -73,6 +73,8 @@ class TrainOptions(object):
         self.parser.add_argument('--lambda_A', type=float, default=1.0, help='weight for cycle loss (A -> B -> A)')
         self.parser.add_argument('--lambda_B', type=float, default=1.0, help='weight for cycle loss (B -> A -> B)')
         self.parser.add_argument('--lambda_z_B', type=float, default=0.025, help='weight for cycle loss (B -> A -> B)')
+        self.parser.add_argument('--lambdaL1', type=float, default=100, help = 'L1 recreation loss coefficient')
+        self.parser.add_argument('--lambdaOcean', type=float, default=1000, help = 'coefficient for the ocean penalty mask')
 
         # monitoring
         self.parser.add_argument('--monitor_gnorm', type=bool, default=True, help='flag set to monitor grad norms')

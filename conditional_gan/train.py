@@ -25,14 +25,25 @@ from tensorboardX import SummaryWriter
 from collections import OrderedDict
 import torchvision
 
-import networkx as nx
+import datetime
 
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
+import matplotlib.gridspec as gridspec
+plt.rcParams['axes.facecolor'] = 'white'
+
+font = {'family' : 'normal',
+        'weight' : 'bold',
+        'size'   : 15}
+
+plt.rc('font', **font)
+
+from skimage.transform import resize
 
 
 
+oceanMask = resize(np.load("OceanMask.npy"), (64, 64))
 
 def save_results(expr_dir, results_dict):
     # save to results.json (for cluster exp)
@@ -160,6 +171,330 @@ def hist_kl_div(tenA, tenB, numbins):
 
 
 
+
+
+
+def take_two_weeks(input_data, start_date):
+    return input_data[start_date:start_date + 14, :, :, :]
+
+
+#normalizing data
+def arr_to_input(arr):
+    arr = np.nan_to_num(arr)
+    if arr.ndim == 3:
+        arr = np.expand_dims(arr, axis=2)
+    means = np.nanmean(arr, axis=(0,1,2))
+    # scale and shift to [-1,1]
+    arr = -1 + 2 * (arr - arr.min((1,2))[:, np.newaxis,np.newaxis]) / (arr.max((1,2))[:, np.newaxis,np.newaxis] - arr.min((1,2))[:, np.newaxis,np.newaxis])
+    arr[np.isnan(arr)] = -1; arr[arr == np.inf] = -1; arr[arr == -np.inf] = -1
+    if 64 is not None:
+        new_arr = []
+        #print "Resizing data to %d" % 64
+        for x in arr:
+            new_arr.append(resize(x, (64,64)))
+        arr = np.stack(new_arr)
+    # convert data from b,0,1,c to b,c,0,1
+    arr = np.transpose(arr, (0,3,1,2))
+    
+    return arr.astype('float32')
+
+
+def numpy_histograms(start_date, inputA, inputB, zero_mask, num_bins, model, to_plot = True):
+    fake_B = model.generate_fwd(torch.from_numpy(arr_to_input(take_two_weeks(inputA, start_date))[:,0:3,:,:]).cuda()).cpu()
+    real_B = torch.from_numpy(arr_to_input(take_two_weeks(inputB, start_date)))
+    curr_day = 0
+    #print(fake_B.shape, real_B.shape)
+    
+    
+    mask = np.ravel(np.tile(zero_mask, (real_B.shape[0], 1, 1, 1)))
+    
+    real_im = np.ravel(real_B.detach().numpy())
+    fake_im = np.ravel(fake_B.detach().numpy())
+
+    
+
+    
+    real_im = real_im[~np.isnan(real_im)]
+    fake_im = fake_im[~np.isnan(fake_im)]
+
+    #print(np.sum(real_im), np.sum(fake_im))
+    #print(np.mean(real_im))
+
+    
+    
+    #
+    
+    #got everything setup, now make bins and counts
+    
+    real_hist_data = np.histogram(real_im, bins=num_bins)
+    fake_hist_data = np.histogram(fake_im, bins=num_bins)
+    
+    if to_plot:
+        fix, ax = plt.subplots(figsize=(10, 10))
+        ax.plot(real_hist_data[1][1:], real_hist_data[0], linestyle = '--', c = '0.0', marker='s',  linewidth=3.0, label = 'Real Data')
+        ax.plot(fake_hist_data[1][1:], fake_hist_data[0], marker = 'o', c = 'g', linewidth = 1.0, label = 'Generated Data')
+        ax.legend(loc='upper right')
+        title = "Histogram of data binned from " + str(starting_day + datetime.timedelta(days = start_date)) + " to " + str(starting_day + datetime.timedelta(days = start_date + 14))
+        ax.set_title(title)
+        ax.set_yscale('log')
+        ax.set_xlabel('Normalized Pixel Values')
+        ax.set_ylabel('Log Counts')
+
+
+    
+    return real_hist_data, fake_hist_data
+
+def take_n_samples_random(data_A, data_B, n):
+    image_indices = np.random.choice(804, n)
+    return data_A[image_indices, :,:, :], data_B[image_indices, :,:, :]
+
+
+def nov_aug_apr_hist(model, inputA, inputB, mask, step, writer, name):
+    starting_day = datetime.date(1900, 1, 1) + datetime.timedelta(days = 37620 + 4018 - 804)
+    
+    
+    f = plt.figure(figsize=(30,40))
+    f.patch.set_facecolor('white')
+    gs = gridspec.GridSpec(4, 3)
+    ax1 = plt.subplot(gs[0, 0])
+    ax2 = plt.subplot(gs[0, 1])
+    ax3 = plt.subplot(gs[0, 2])
+    
+    ax4 = plt.subplot(gs[1, 0])
+    ax5 = plt.subplot(gs[1, 1])
+    ax6 = plt.subplot(gs[1, 2])
+    
+    ax7 = plt.subplot(gs[2, 0:3])
+    ax8 = plt.subplot(gs[3, 0:3])
+    
+    
+    start_date = 300
+    real_hist_data, fake_hist_data =  numpy_histograms(start_date, inputA, inputB, mask, 100, model, False)
+    ax1.plot(real_hist_data[1][1:], real_hist_data[0], linestyle = '--', c = '0.0', marker='s',  linewidth=3.0, label = 'Real Data')
+    ax1.plot(fake_hist_data[1][1:], fake_hist_data[0], marker = 'o', c = 'g', linewidth = 1.0, label = 'Generated Data')
+    ax1.legend(loc='upper right')
+    title = "Histogram of data binned from " + str(starting_day + datetime.timedelta(days = start_date)) + " to " + str(starting_day + datetime.timedelta(days = start_date + 14))
+    ax1.set_title(title)
+    ax1.set_yscale('log')
+    ax1.set_xlabel('Normalized Pixel Values')
+    ax1.set_ylabel('Log Counts')
+    
+    temp = ax4.matshow(np.nan_to_num(pearson_coeff(start_date, inputA, inputB, model))[0,:,:], cmap='gray')
+    plt.colorbar(temp, ax = ax4, boundaries=np.linspace(-1,1,101))
+    ax4.set_title("Correlation Coeffs over " + str(starting_day + datetime.timedelta(days = start_date)) + " to " + str(starting_day + datetime.timedelta(days = start_date + 14)))
+
+    
+    start_date = 400
+    real_hist_data, fake_hist_data =  numpy_histograms(start_date, inputA, inputB, mask, 100, model, False)
+    ax2.plot(real_hist_data[1][1:], real_hist_data[0], linestyle = '--', c = '0.0', marker='s',  linewidth=3.0, label = 'Real Data')
+    ax2.plot(fake_hist_data[1][1:], fake_hist_data[0], marker = 'o', c = 'g', linewidth = 1.0, label = 'Generated Data')
+    ax2.legend(loc='upper right')
+    title = "Histogram of data binned from " + str(starting_day + datetime.timedelta(days = start_date)) + " to " + str(starting_day + datetime.timedelta(days = start_date + 14))
+    ax2.set_title(title)
+    ax2.set_yscale('log')
+    ax2.set_xlabel('Normalized Pixel Values')
+    ax2.set_ylabel('Log Counts')
+    
+    temp = ax5.matshow(np.nan_to_num(pearson_coeff(start_date, inputA, inputB, model))[0,:,:], cmap = 'gray')
+    plt.colorbar(temp, ax = ax5, boundaries=np.linspace(-1,1,101))
+    ax5.set_title("Correlation Coeffs over "  + str(starting_day + datetime.timedelta(days = start_date)) + " to " + str(starting_day + datetime.timedelta(days = start_date + 14)))
+
+
+    
+    start_date = 530
+    real_hist_data, fake_hist_data =  numpy_histograms(start_date, inputA, inputB, mask, 100, model, False)
+    ax3.plot(real_hist_data[1][1:], real_hist_data[0], linestyle = '--', c = '0.0', marker='s',  linewidth=3.0, label = 'Real Data')
+    ax3.plot(fake_hist_data[1][1:], fake_hist_data[0], marker = 'o', c = 'g', linewidth = 1.0, label = 'Generated Data')
+    ax3.legend(loc='upper right')
+    title = "Histogram of data binned from " + str(starting_day + datetime.timedelta(days = start_date)) + " to " + str(starting_day + datetime.timedelta(days = start_date + 14))
+    ax3.set_title(title)
+    ax3.set_yscale('log')
+    ax3.set_xlabel('Normalized Pixel Values')
+    ax3.set_ylabel('Log Counts')
+    
+    
+    temp = ax6.matshow(np.nan_to_num(pearson_coeff(start_date, inputA, inputB, model))[0,:,:], cmap = 'gray')
+    plt.colorbar(temp, ax = ax6, boundaries=np.linspace(-1,1,101))
+    ax6.set_title("Correlation Coeffs over "  + str(starting_day + datetime.timedelta(days = start_date)) + " to " + str(starting_day + datetime.timedelta(days = start_date + 14)))
+    
+
+    num_samples = 10
+    
+    sampled_input, sampled_output_real = take_n_samples_random(inputA, inputB, num_samples)
+    
+    sampled_input = torch.from_numpy(arr_to_input(sampled_input)[:,0:3,:,:])
+    
+    sampled_output_fake = model.generate_fwd(sampled_input.cuda()).cpu()
+    sampled_output_real = torch.from_numpy(arr_to_input(sampled_output_real))
+    #print(sampled_input.shape, sampled_output_fake.shape, sampled_output_real.shape)
+
+    
+    
+    img = np.hstack([image for image in sampled_input.detach().numpy().reshape(num_samples, 64*3, 64)])
+    dx, dy = 64,64
+
+    # Custom (rgb) grid color
+    grid_color = 1
+
+    # Modify the image to include the grid
+    img[:,::dy] = grid_color
+    img[::dx,:] = grid_color
+    
+    ax7.imshow(img)
+    ax7.set_ylabel("INPUT CHANNELS: TMIN, TMAX, PRECIPITATION")
+
+    
+    
+    
+    sampled_outputs = torch.cat((sampled_output_fake, sampled_output_real, torch.abs(sampled_output_fake - sampled_output_real)), 1)
+    img = np.hstack([image for image in sampled_outputs.detach().numpy().reshape(num_samples, 64*3, 64)])
+
+    
+
+    # Modify the image to include the grid
+    img[:,::dy] = grid_color
+    img[::dx,:] = grid_color
+
+    
+    
+    ax8.imshow(img)
+    ax8.set_ylabel("OUTPUTS: ERROR, REAL, GENERATED")
+    
+    plot_to_tensorboard(writer, name, f, step)
+
+
+def pearson_coeff(start_date, inputA, inputB, model):
+    fakeB = model.generate_fwd(torch.from_numpy(arr_to_input(take_two_weeks(inputA, start_date))[:,0:3,:,:]).cuda()).detach().cpu().numpy()
+    realB = torch.from_numpy(arr_to_input(take_two_weeks(inputB, start_date))).numpy()
+    
+    xbar = np.mean(fakeB, axis=0)
+    ybar = np.mean(realB, axis=0)
+    xSTDev = np.std(fakeB, axis=0)
+    ySTDev = np.std(realB, axis=0)
+    r = np.mean(((fakeB - xbar)/(xSTDev)) * ((realB - ybar)/(ySTDev)), axis = 0)
+    return r
+
+def determination_coeff(start_date, inputA, inputB, model):
+    fakeB = model.generate_fwd(torch.from_numpy(arr_to_input(take_two_weeks(inputA, start_date))[:,0:3,:,:]).cuda()).detach().cpu().numpy()
+    realB = torch.from_numpy(arr_to_input(take_two_weeks(inputB, start_date))).numpy()
+    
+    xbar = np.mean(fakeB, axis=0)
+    ybar = np.mean(realB, axis=0)
+    xSTDev = np.std(fakeB, axis=0)
+    ySTDev = np.std(realB, axis=0)
+    r = np.mean(((fakeB - xbar)/(xSTDev)) * ((realB - ybar)/(ySTDev)), axis = 0)
+    return r
+
+
+
+
+def generate_nice_visualization_graph():
+    '''unfinished, don't use '''
+    
+    #visualize current training batch
+    visualize_cycle(opt, real_A, visuals, epoch, epoch_iter/opt.batchSize, train=True)
+
+    sizeT = real_A.size()
+
+    viz_data = viz_dataset.next()
+    viz_real_A, viz_real_B = Variable(viz_data['A']), Variable(viz_data['B'])
+    viz_prior_z_B = Variable(viz_real_A.data.new(viz_real_A.size(0), opt.nlatent, 1, 1).normal_(0, 1))
+    if use_gpu:
+        viz_real_A = viz_real_A.cuda()
+        viz_real_B = viz_real_B.cuda()
+        viz_prior_z_B = viz_prior_z_B.cuda()
+
+    viz_visuals = model.generate_visuals(viz_real_A, viz_real_B, viz_prior_z_B)
+
+
+    # # visuals = OrderedDict([('real_A', real_A.data), ('fake_B', fake_B.data), ('rec_A', rec_A.data),
+    # #                        ('real_B', real_B.data), ('fake_A', fake_A.data), ('rec_B', rec_B.data)])
+    #
+    #
+    viz_real_A = viz_visuals['real_A']
+    viz_real_B = viz_visuals['real_B']
+    viz_fake_B = viz_visuals['fake_B']
+    # viz_rec_A = viz_visuals['rec_A']
+    # viz_fake_A = viz_visuals['fake_A']
+    # viz_rec_B = viz_visuals['rec_B']
+    #
+    for index in range(0, viz_visuals['real_A'].shape[0]):
+        viz_real_A = viz_visuals['real_A'][index]
+        viz_real_B = viz_visuals['real_B'][index]
+        viz_fake_B = viz_visuals['fake_B'][index]
+    #     viz_rec_A = viz_visuals['rec_A'][index]
+    #     viz_fake_A = viz_visuals['fake_A'][index]
+    #     viz_rec_B = viz_visuals['rec_B'][index]
+    #
+    #
+    #
+    #
+    #
+        viz_real_A = viz_real_A.view(-1, 3*viz_real_A.shape[1], viz_real_A.shape[2])
+    #     viz_fake_A = viz_fake_A.view(-1, 3*viz_fake_A.shape[1], viz_fake_A.shape[2])
+    #     viz_rec_A = viz_rec_A.view(-1, 3*viz_rec_A.shape[1], viz_rec_A.shape[2])
+    #
+    #     #print(viz_real_A.shape, viz_fake_A.shape, viz_rec_A.shape, viz_real_B.shape, viz_fake_B.shape, viz_rec_B.shape)
+    #
+    #
+    #
+        viz_cGen = nx.Graph()
+        viz_cGen.add_node('realA', image = viz_real_A)
+        viz_cGen.add_node('realB', image = viz_real_B)
+        viz_cGen.add_node('fakeB', image = viz_fake_B)
+    #
+    #
+    #
+        viz_cGen.add_edge('realA','realB', r= 'temp1')
+        viz_cGen.add_edge('realB', 'fakeB', r= 'temp2')
+        edge_labels = nx.get_edge_attributes(viz_cGen,'r')
+        pos={'realA': np.array([-1, 0]), 'realB': np.array([0, 0]), 'fakeB': np.array([ 1,0 ])}
+
+        fig=plt.figure(figsize=(15,10))
+        ax=plt.subplot(111, title="Generated visuals from cGan")
+        ax.set_aspect('auto')
+        nx.draw_networkx_edges(viz_cGen,pos,ax=ax)
+        #nx.draw_networkx_edge_labels(viz_cGen, pos, edge_labels = edge_labels)
+
+
+        plt.xlim(-1.5,1.5)
+        plt.ylim(-1.5,1.5)
+
+        trans=ax.transData.transform
+        trans2=fig.transFigure.inverted().transform
+
+
+        for n in viz_cGen:
+
+            piesize=(0.135/viz_cGen.node[n]['image'].shape[2])*viz_cGen.node[n]['image'].shape[1]
+            p2=piesize/2.0
+            xx,yy=trans(pos[n]) # figure coordinates
+            xa,ya=trans2((xx,yy)) # axes coordinates
+            a = plt.axes([xa-p2,ya-p2, piesize, piesize], xlabel = n)
+            #a.title = "hi"
+            #a.set_aspect('equal')
+            image = viz_cGen.node[n]['image'].cpu().clone()
+            image = image.squeeze(0).numpy()
+            #print(image.shape)
+
+            #image = np.random.rand(64,64)
+            #image = unloader(image)
+            #print(viz_ABA.node[n]['image'][0].shape)
+            #print(image.shape)
+            #savestr = "temp" + str(total_steps+index) + ".npy"
+            #np.save(savestr, image)
+            a.imshow(image, cmap='gray')
+            #print(G.node[n]['image'].shape)
+        #fig.savefig("temp1.png")
+        #plt.imshow(image)
+        #plt.show()
+        plot_to_tensorboard(writer, "Generated Conditional Visuals pix2pix", fig, total_steps)
+        #model.train()
+
+
+
+
+
 def train_model():
     opt = TrainOptions().parse(sub_dirs=['vis_multi','vis_cycle','vis_latest','train_vis_cycle'])
     writer = SummaryWriter(opt.tbpath)
@@ -179,7 +514,7 @@ def train_model():
         trainA, trainB, devA, devB, testA, testB = load_numpy_data(opt.dataroot, grid_size=opt.grid_size)
         train_dataset = AlignedIterator(trainA, trainB, batch_size=opt.batchSize)
 
-        viz_dataset = AlignedIterator(devA, devB, batch_size = 1)
+        #viz_dataset = AlignedIterator(devA, devB, batch_size = 1)
 
         print_log(out_f, '#training images = %d' % len(train_dataset))
         vis_inf = False
@@ -187,8 +522,8 @@ def train_model():
         test_dataset = AlignedIterator(testA, testB, batch_size=100)
         print_log(out_f, '#test images = %d' % len(test_dataset))
 
-        dev_dataset = AlignedIterator(devA, devB, batch_size=100)
-        print_log(out_f, '#dev images = %d' % len(dev_dataset))
+        # dev_dataset = AlignedIterator(devA, devB, batch_size=100)
+        # print_log(out_f, '#dev images = %d' % len(dev_dataset))
 
         dev_cycle = itertools.cycle(AlignedIterator(devA, devB, batch_size=25))
     else:
@@ -225,18 +560,20 @@ def train_model():
         print_log(out_f, '#supervised images = %d' % sup_size)
 
     # create_model
-    if opt.model == 'stoch_cycle_gan':
-        model = StochCycleGAN(opt)
-    elif opt.model == 'cycle_gan':
-        model = StochCycleGAN(opt, ignore_noise=True)
-    elif opt.model == 'aug_cycle_gan':
-        model = AugmentedCycleGAN(opt)
-        create_sub_dirs(opt, ['vis_inf'])
-        vis_inf = True
-    elif opt.model == 'cond_gan':
-        model = StochCondGan(opt)
-    else:
-        raise NotImplementedError('Specified model is not implemented.')
+    # if opt.model == 'stoch_cycle_gan':
+    #     model = StochCycleGAN(opt)
+    # elif opt.model == 'cycle_gan':
+    #     model = StochCycleGAN(opt, ignore_noise=True)
+    # elif opt.model == 'aug_cycle_gan':
+    #     model = AugmentedCycleGAN(opt)
+    #     create_sub_dirs(opt, ['vis_inf'])
+    #     vis_inf = True
+    # elif opt.model == 'cond_gan':
+    #     model = StochCondGan(opt)
+    # else:
+    #     raise NotImplementedError('Specified model is not implemented.')
+
+    model = StochCondGan(opt)
 
     print_log(out_f, "model [%s] was created" % (model.__class__.__name__))
 
@@ -256,6 +593,9 @@ def train_model():
     create_sub_dirs(opt, ['vis_pred_B'])
     unloader = transforms.ToPILImage()
 
+    data_A = np.load('../datasets/livneh/testA.npz')['data']
+    data_B = np.load('../datasets/livneh/testB.npz')['data']
+    
     for epoch in range(opt.epoch_count, opt.niter + opt.niter_decay + 1):
         epoch_start_time = time.time()
         epoch_iter = 0
@@ -299,265 +639,15 @@ def train_model():
                 print("sending images to tensorboard")
                 model.eval()
 
-                # visualize current training batch
-                #visualize_cycle(opt, real_A, visuals, epoch, epoch_iter/opt.batchSize, train=True)
-
-                sizeT = real_A.size()
-
-                viz_data = viz_dataset.next()
-                viz_real_A, viz_real_B = Variable(viz_data['A']), Variable(viz_data['B'])
-                viz_prior_z_B = Variable(viz_real_A.data.new(viz_real_A.size(0), opt.nlatent, 1, 1).normal_(0, 1))
-                if use_gpu:
-                    viz_real_A = viz_real_A.cuda()
-                    viz_real_B = viz_real_B.cuda()
-                    viz_prior_z_B = viz_prior_z_B.cuda()
-
-                viz_visuals = model.generate_visuals(viz_real_A, viz_real_B, viz_prior_z_B)
 
 
-                # # visuals = OrderedDict([('real_A', real_A.data), ('fake_B', fake_B.data), ('rec_A', rec_A.data),
-                # #                        ('real_B', real_B.data), ('fake_A', fake_A.data), ('rec_B', rec_B.data)])
-                #
-                #
-                viz_real_A = viz_visuals['real_A']
-                viz_real_B = viz_visuals['real_B']
-                viz_fake_B = viz_visuals['fake_B']
-                # viz_rec_A = viz_visuals['rec_A']
-                # viz_fake_A = viz_visuals['fake_A']
-                # viz_rec_B = viz_visuals['rec_B']
-                #
-                for index in range(0, viz_visuals['real_A'].shape[0]):
-                    viz_real_A = viz_visuals['real_A'][index]
-                    viz_real_B = viz_visuals['real_B'][index]
-                    viz_fake_B = viz_visuals['fake_B'][index]
-                #     viz_rec_A = viz_visuals['rec_A'][index]
-                #     viz_fake_A = viz_visuals['fake_A'][index]
-                #     viz_rec_B = viz_visuals['rec_B'][index]
-                #
-                #
-                #
-                #
-                #
-                    viz_real_A = viz_real_A.view(-1, 3*viz_real_A.shape[1], viz_real_A.shape[2])
-                #     viz_fake_A = viz_fake_A.view(-1, 3*viz_fake_A.shape[1], viz_fake_A.shape[2])
-                #     viz_rec_A = viz_rec_A.view(-1, 3*viz_rec_A.shape[1], viz_rec_A.shape[2])
-                #
-                #     #print(viz_real_A.shape, viz_fake_A.shape, viz_rec_A.shape, viz_real_B.shape, viz_fake_B.shape, viz_rec_B.shape)
-                #
-                #
-                #
-                    viz_cGen = nx.Graph()
-                    viz_cGen.add_node('realA', image = viz_real_A)
-                    viz_cGen.add_node('realB', image = viz_real_B)
-                    viz_cGen.add_node('fakeB', image = viz_fake_B)
-                #
-                #
-                #
-                    viz_cGen.add_edge('realA','realB', r= 'temp1')
-                    viz_cGen.add_edge('realB', 'fakeB', r= 'temp2')
-                    edge_labels = nx.get_edge_attributes(viz_cGen,'r')
-                    pos={'realA': np.array([-1, 0]), 'realB': np.array([0, 0]), 'fakeB': np.array([ 1,0 ])}
-
-                    fig=plt.figure(figsize=(15,10))
-                    ax=plt.subplot(111, title="Generated visuals from cGan")
-                    ax.set_aspect('auto')
-                    nx.draw_networkx_edges(viz_cGen,pos,ax=ax)
-                    #nx.draw_networkx_edge_labels(viz_cGen, pos, edge_labels = edge_labels)
+                nov_aug_apr_hist(model, data_A, data_B, oceanMask, total_steps, writer, "Dashboard Generated")
 
 
-                    plt.xlim(-1.5,1.5)
-                    plt.ylim(-1.5,1.5)
 
-                    trans=ax.transData.transform
-                    trans2=fig.transFigure.inverted().transform
+                model.train()
 
-
-                    for n in viz_cGen:
-
-                        piesize=(0.135/viz_cGen.node[n]['image'].shape[2])*viz_cGen.node[n]['image'].shape[1]
-                        p2=piesize/2.0
-                        xx,yy=trans(pos[n]) # figure coordinates
-                        xa,ya=trans2((xx,yy)) # axes coordinates
-                        a = plt.axes([xa-p2,ya-p2, piesize, piesize], xlabel = n)
-                        #a.title = "hi"
-                        #a.set_aspect('equal')
-                        image = viz_cGen.node[n]['image'].cpu().clone()
-                        image = image.squeeze(0).numpy()
-                        #print(image.shape)
-
-                        #image = np.random.rand(64,64)
-                        #image = unloader(image)
-                        #print(viz_ABA.node[n]['image'][0].shape)
-                        #print(image.shape)
-                        #savestr = "temp" + str(total_steps+index) + ".npy"
-                        #np.save(savestr, image)
-                        a.imshow(image, cmap='gray')
-                        #print(G.node[n]['image'].shape)
-                    #fig.savefig("temp1.png")
-                    #plt.imshow(image)
-                    #plt.show()
-                    plot_to_tensorboard(writer, "Generated Conditional Visuals pix2pix", fig, total_steps)
-                    model.train()
-                #
-                #
-                #     fig = 0
-                #     viz_BAB = nx.Graph()
-                #     viz_BAB.add_node('realB', image = viz_real_B)
-                #     viz_BAB.add_node('fakeA', image = viz_fake_A)
-                #     viz_BAB.add_node('recB', image = viz_rec_B)
-                #
-                #     viz_BAB.add_edge('realB','fakeA', r= 'G_BA')
-                #     viz_BAB.add_edge('fakeA', 'recB', r= 'G_AB')
-                #     edge_labels = nx.get_edge_attributes(viz_BAB,'r')
-                #     pos={'realB': np.array([-1, 0]), 'fakeA': np.array([0, 0]), 'recB': np.array([ 1,0 ])}
-                #
-                #     fig=plt.figure(figsize=(15,10))
-                #     ax=plt.subplot(111)
-                #     #ax.set_aspect('equal')
-                #     nx.draw_networkx_edges(viz_BAB,pos,ax=ax)
-                #     nx.draw_networkx_edge_labels(viz_BAB, pos, edge_labels = edge_labels)
-                #
-                #
-                #     plt.xlim(-1.5,1.5)
-                #     plt.ylim(-1.5,1.5)
-                #
-                #     trans=ax.transData.transform
-                #     trans2=fig.transFigure.inverted().transform
-                #
-                #
-                #     for n in viz_BAB:
-                #
-                #         piesize=(0.135/viz_BAB.node[n]['image'].shape[2])*viz_BAB.node[n]['image'].shape[1]
-                #         p2=piesize/2.0
-                #         xx,yy=trans(pos[n]) # figure coordinates
-                #         xa,ya=trans2((xx,yy)) # axes coordinates
-                #         a = plt.axes([xa-p2,ya-p2, piesize, piesize], xlabel = n)
-                #         #a.title = "hi"
-                #         #a.set_aspect('equal')
-                #         image = viz_BAB.node[n]['image'].cpu().clone()
-                #         image = image.squeeze(0).numpy()
-                #         a.imshow(image, cmap='gray')
-                #         #print(G.node[n]['image'].shape)
-                #
-                #     plot_to_tensorboard(writer, "Cycle Viz B-A-B", fig, total_steps)
-                #     plt.close()
-                #
-                #     fig = 0
-                #     viz_A_diffs = nx.Graph()
-                #     viz_A_diffs.add_node('realA', image = viz_real_A)
-                #     viz_A_diffs.add_node('fakeA', image = viz_fake_A)
-                #     viz_A_diffs.add_node('diffA', image = torch.abs(viz_real_A - viz_fake_A))
-                #
-                #     viz_A_diffs.add_edge('realA','fakeA')
-                #     viz_A_diffs.add_edge('fakeA', 'diffA', r= 'Absolute Errors')
-                #     edge_labels = nx.get_edge_attributes(viz_A_diffs,'r')
-                #     pos={'realA': np.array([-1, 0]), 'fakeA': np.array([0, 0]), 'diffA': np.array([ 1,0 ])}
-                #
-                #     fig=plt.figure(figsize=(15,10))
-                #     ax=plt.subplot(111)
-                #     #ax.set_aspect('equal')
-                #     nx.draw_networkx_edges(viz_A_diffs,pos,ax=ax)
-                #     nx.draw_networkx_edge_labels(viz_A_diffs, pos, edge_labels = edge_labels)
-                #
-                #
-                #     plt.xlim(-1.5,1.5)
-                #     plt.ylim(-1.5,1.5)
-                #
-                #     trans=ax.transData.transform
-                #     trans2=fig.transFigure.inverted().transform
-                #
-                #
-                #     for n in viz_A_diffs:
-                #
-                #         piesize=(0.135/viz_A_diffs.node[n]['image'].shape[2])*viz_A_diffs.node[n]['image'].shape[1]
-                #         p2=piesize/2.0
-                #         xx,yy=trans(pos[n]) # figure coordinates
-                #         xa,ya=trans2((xx,yy)) # axes coordinates
-                #         a = plt.axes([xa-p2,ya-p2, piesize, piesize], xlabel = n)
-                #         #a.title = "hi"
-                #         #a.set_aspect('equal')
-                #         image = viz_A_diffs.node[n]['image'].cpu().clone()
-                #         image = image.squeeze(0).numpy()
-                #         a.imshow(image, cmap='gray')
-                #         #print(G.node[n]['image'].shape)
-                #
-                #     plot_to_tensorboard(writer, "Real vs Fake A", fig, total_steps)
-                #     plt.close()
-                #
-                #     fig = 0
-                #     viz_B_diffs = nx.Graph()
-                #     viz_B_diffs.add_node('realB', image = viz_real_B)
-                #     viz_B_diffs.add_node('fakeB', image = viz_fake_B)
-                #     viz_B_diffs.add_node('diffB', image = torch.abs(viz_real_B - viz_fake_B))
-                #
-                #     viz_B_diffs.add_edge('realB','fakeB')
-                #     viz_B_diffs.add_edge('fakeB', 'diffB', r= 'Absolute Errors')
-                #     edge_labels = nx.get_edge_attributes(viz_B_diffs,'r')
-                #     pos={'realB': np.array([-1, 0]), 'fakeB': np.array([0, 0]), 'diffB': np.array([ 1,0 ])}
-                #
-                #     fig=plt.figure(figsize=(15,10))
-                #     ax=plt.subplot(111)
-                #     #ax.set_aspect('equal')
-                #     nx.draw_networkx_edges(viz_B_diffs,pos,ax=ax)
-                #     nx.draw_networkx_edge_labels(viz_B_diffs, pos, edge_labels = edge_labels)
-                #
-                #
-                #     plt.xlim(-1.5,1.5)
-                #     plt.ylim(-1.5,1.5)
-                #
-                #     trans=ax.transData.transform
-                #     trans2=fig.transFigure.inverted().transform
-                #
-                #
-                #     for n in viz_B_diffs:
-                #
-                #         piesize=(0.135/viz_B_diffs.node[n]['image'].shape[2])*viz_B_diffs.node[n]['image'].shape[1]
-                #         p2=piesize/2.0
-                #         xx,yy=trans(pos[n]) # figure coordinates
-                #         xa,ya=trans2((xx,yy)) # axes coordinates
-                #         a = plt.axes([xa-p2,ya-p2, piesize, piesize], xlabel = n)
-                #         #a.title = "hi"
-                #         #a.set_aspect('equal')
-                #         image = viz_B_diffs.node[n]['image'].cpu().clone()
-                #         image = image.squeeze(0).numpy()
-                #         a.imshow(image, cmap='gray')
-                #         #print(G.node[n]['image'].shape)
-                #
-                #     plot_to_tensorboard(writer, "Real vs Fake B", fig, total_steps)
-                #     plt.close()
-                #
-                #
-                # writer.add_histogram('realBStats', viz_real_B)
-                # writer.add_histogram('fakeBStats', viz_fake_B)
-                # writer.add_histogram('diffB', viz_real_B - viz_fake_B)
-                #
-                # writer.add_scalar("KL[realB, fakeB]", hist_kl_div(viz_real_B, viz_fake_B, 100), total_steps)
-                #
-                #
-                #
-                #
-                #
-                #
-                # #writer.add_image("cycle viz, A-B-A, B-A-B", visualize_cycle(opt, dev_real_A, dev_visuals, epoch, epoch_iter/opt.batchSize, train=False), total_steps)
-                #
-                # # visualize generated B with different z_B
-                # #visualize_multi(opt, dev_real_A, model, epoch, epoch_iter/opt.batchSize)
-                #
-                #
-                # if vis_inf:
-                #     pass
-                #     # visualize generated B with different z_B infered from real_B
-                #     #visualize_inference(opt, dev_real_A, dev_real_B, model, epoch, epoch_iter/opt.batchSize)
-                # # for key in visuals:
-                # #     # print(key)
-                # #     # print(visuals[key].shape)
-                # #     # torchvision.utils.make_grid(visuals[key], nrow=4)
-                # #     temp_str = key + " image"
-                # #     writer.add_image(temp_str, torchvision.utils.make_grid(visuals[key], nrow=4), total_steps)
-                #
-                # # writer.add_image("A-B-A cycle", torchvision.utils.make_grid(torch.cat((visuals['real_A'], visuals['fake_B'], visuals['rec_A']), dim=1), nrow=7), total_steps)
-                # # writer.add_image("B-A-B cycle", torchvision.utils.make_grid(torch.cat((visuals['real_B'], visuals['fake_A'], visuals['rec_B']), dim=1), nrow=5), total_steps)
-
+               
             if total_steps % opt.print_freq == 0:
 
 
