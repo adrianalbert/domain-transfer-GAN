@@ -1,7 +1,7 @@
 import argparse
 import os
 import torch
-import cPickle as pkl
+import pickle as pkl
 
 
 def create_sub_dirs(opt, sub_dirs):
@@ -109,7 +109,7 @@ class TrainOptions(object):
 
         print('------------ Options -------------')
         for k, v in sorted(args.items()):
-            print('%s: %s' % (str(k), str(v)))
+            print(('%s: %s' % (str(k), str(v))))
         print('-------------- End ----------------')
         if not os.path.exists(expr_dir):
             os.makedirs(expr_dir)
@@ -122,7 +122,7 @@ class TrainOptions(object):
             opt_file.write('-------------- End ----------------\n')
 
         file_name = os.path.join(expr_dir, 'opt.pkl')
-        with open(file_name, 'w') as opt_file:
+        with open(file_name, 'wb') as opt_file:
             pkl.dump(args, opt_file)
 
         # create sub dirs

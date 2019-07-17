@@ -17,7 +17,7 @@ from skimage.transform import resize
 
 
 oceanMask = resize(np.load("OceanMask.npy"), (64, 64))
-
+heightMask = np.load("height_array.npy")
 
 
 def gauss_reparametrize(mu, logvar, n_sample=1):
@@ -114,10 +114,11 @@ class StochCondGan(object):
 
         self.criterionGAN = functools.partial(criterion_GAN, use_sigmoid=opt.use_sigmoid)
         self.criterionL1 = F.l1_loss
+        self.criterionL2 = F.mse_loss
 
 
 
-    def train_instance(self, real_A, real_B, prior_z_B):
+    def train_instance(self, real_A, real_B, prior_z_B, epoch):
 
         if self.ignore_noise:
             prior_z_B = prior_z_B.mul(0.).add(1.)
@@ -152,16 +153,37 @@ class StochCondGan(object):
 
         pred_fake_B = self.netD_B.forward(torch.cat((real_A, fake_B), 1).detach())
         loss_G_B = self.criterionGAN(pred_fake_B, True)
-        loss_G_B_l1 = self.criterionL1(fake_B, real_B)*lambdaL1
+        loss_G_B_l1 = self.criterionL1(fake_B, real_B)
         #print(fake_B.shape)
         #print(oceanMask.shape)
         fin_mask = torch.from_numpy(np.tile(oceanMask, (fake_B.shape[0], 1, 1, 1)).astype(np.float32)).cuda()
 
-        loss_G_Ocean_mask = self.criterionL1(fake_B*fin_mask, -fin_mask) * lambdaOcean
+        height_tile = torch.from_numpy(np.tile(heightMask, (fake_B.shape[0], 1, 1, 1)).astype(np.float32)).cuda()
+        #print(height_tile.shape, torch.max(height_tile))
+
+        loss_G_Ocean_mask = self.criterionL1(fake_B*fin_mask, -fin_mask)
+
+        loss_G_height = self.criterionL1(fake_B*height_tile, real_B*height_tile)
+
+        loss_G_total_snow_mass = self.criterionL1(torch.sum(fake_B), torch.sum(real_B))
+
+        #implement nvidia l1 regression stuff
+        #also implement lower spatial resolution losses?
 
 
         ##### Generation and Encoder optimization
-        loss_G = loss_G_B + loss_G_B_l1 + loss_G_Ocean_mask
+
+        loss_G = loss_G_B_l1 * self.opt.lambda_L1
+
+        if epoch > 10:
+            loss_G += loss_G_B
+
+        loss_G += loss_G_Ocean_mask * self.opt.lambda_Ocean
+        loss_G += loss_G_height * self.opt.lambda_Height
+        loss_G += loss_G_total_snow_mass * self.opt.lambda_Snow
+
+
+
 
         self.optimizer_G.zero_grad()
         loss_G.backward()
@@ -170,7 +192,7 @@ class StochCondGan(object):
 
         ##### Return dicts
         losses = OrderedDict([('Discriminator Loss', loss_D), ('Generator Loss', loss_G), ('Discriminator fake', loss_D_fake_B), ('Discriminator real', loss_D_true_B), ('Generator GAN', loss_G_B), ('Generator L1', loss_G_B_l1),
-                            ('OceanMaskError', loss_G_Ocean_mask), ('P_f_B', pred_fake_B.data.mean()), ('P_t_B', pred_true_B.data.mean())])
+                            ('HeightError', loss_G_height), ('Snow total error', loss_G_total_snow_mass), ('OceanMaskError', loss_G_Ocean_mask), ('P_f_B', pred_fake_B.data.mean()), ('P_t_B', pred_true_B.data.mean())])
 
         visuals = OrderedDict([('real_A', real_A.data), ('fake_B', fake_B.data), ('real_B', real_B.data)])
 
@@ -186,7 +208,7 @@ class StochCondGan(object):
 
     def generate_fwd(self, real_A):
         return self.netG_A_B.forward(real_A)
-        
+
 
     def predict_B(self, real_A, z_B):
         if self.ignore_noise:
@@ -202,7 +224,7 @@ class StochCondGan(object):
         for param_group in self.optimizer_G.param_groups:
             param_group['lr'] = lr
 
-        print('update learning rate: %f -> %f' % (self.old_lr, lr))
+        print(('update learning rate: %f -> %f' % (self.old_lr, lr)))
         self.old_lr = lr
 
     def save(self, chk_name):
@@ -468,7 +490,7 @@ class StochCycleGAN(object):
         for param_group in self.optimizer_G.param_groups:
             param_group['lr'] = lr
 
-        print('update learning rate: %f -> %f' % (self.old_lr, lr))
+        print(('update learning rate: %f -> %f' % (self.old_lr, lr)))
         self.old_lr = lr
 
     def save(self, chk_name):
@@ -926,7 +948,7 @@ class AugmentedCycleGAN(object):
         for param_group in self.optimizer_G_B.param_groups:
             param_group['lr'] = lr
 
-        print('update learning rate: %f -> %f' % (self.old_lr, lr))
+        print(('update learning rate: %f -> %f' % (self.old_lr, lr)))
         self.old_lr = lr
 
     def save(self, chk_name):

@@ -7,7 +7,7 @@ import torchvision.utils as vutils
 from options import TestOptions
 from edges2shoes_data import DataLoader, load_edges2shoes, AlignedIterator, UnalignedIterator
 from model import StochCycleGAN, AugmentedCycleGAN
-import cPickle as pkl
+import pickle as pkl
 import math
 from evaluate import eval_mse_A, eval_ubo_B
 from model import log_prob_gaussian, gauss_reparametrize, log_prob_laplace, kld_std_guss
@@ -15,7 +15,7 @@ import random
 
 def visualize_cycle(opt, real_A, visuals, name='cycle_test.png'):
     size = real_A.size()
-    images = [img.cpu().unsqueeze(1) for img in visuals.values()]
+    images = [img.cpu().unsqueeze(1) for img in list(visuals.values())]
     vis_image = torch.cat(images, dim=1).view(size[0]*len(images),size[1],size[2],size[3])
     save_path = os.path.join(opt.res_dir, name)
     vutils.save_image(vis_image.cpu(), save_path,
@@ -98,13 +98,13 @@ def train_MVGauss_B(dataset):
         real_B = real_B.cuda()
         b_mean += real_B.mean(0, keepdim=True)
         n += 1
-        print i
+        print(i)
     b_mean = b_mean / n
     for i,batch in enumerate(dataset):
         real_B = Variable(batch['B'])
         real_B = real_B.cuda()
         b_var += ((real_B-b_mean)**2).mean(0, keepdim=True)
-        print i
+        print(i)
     b_var = b_var / n
     return b_mean, b_var
 
@@ -123,15 +123,15 @@ def eval_bpp_MVGauss_B(dataset, mu, logvar):
 def compute_bpp_MVGauss_B(dataroot):
     trainA, trainB, devA, devB, testA, testB = load_edges2shoes(dataroot)
     train_dataset = UnalignedIterator(trainA, trainB, batch_size=200)
-    print '#training images = %d' % len(train_dataset)
+    print('#training images = %d' % len(train_dataset))
 
     test_dataset = AlignedIterator(testA, testB, batch_size=200)
-    print '#test images = %d' % len(test_dataset)
+    print('#test images = %d' % len(test_dataset))
 
     mvg_mean, mvg_var = train_MVGauss_B(train_dataset)
     mvg_logvar = torch.log(mvg_var + 1e-5)
     bpp = eval_bpp_MVGauss_B(test_dataset, mvg_mean, mvg_logvar)
-    print "MVGauss BPP: %.4f" % bpp
+    print("MVGauss BPP: %.4f" % bpp)
 
 
 def train_logvar(dataset, model, epochs=1, use_gpu=True):
@@ -165,7 +165,7 @@ def train_logvar(dataset, model, epochs=1, use_gpu=True):
             kld_val = kld.mean(0).data[0]
             bpp = ubo.mean(0).data[0] / (64*64*3* math.log(2.))
 
-            print 'UBO: %.4f, KLD: %.4f, BPP: %.4f' % (ubo_val_new, kld_val, bpp)
+            print('UBO: %.4f, KLD: %.4f, BPP: %.4f' % (ubo_val_new, kld_val, bpp))
             loss = ubo.mean(0)
             iterative_opt.zero_grad()
             loss.backward()
@@ -187,7 +187,7 @@ def compute_train_kld(train_dataset, model):
         train_kl.append(kld_std_guss(mu, 0.0*mu).mean(0).data[0])
         if i == 100:
             break
-    print 'train KL:',np.mean(train_kl)
+    print('train KL:',np.mean(train_kl))
 
 
 def test_model():
@@ -225,14 +225,14 @@ def test_model():
     trainA = trainA[:sub_size]
     trainB = trainB[:sub_size]
     train_dataset = UnalignedIterator(trainA, trainB, batch_size=200)
-    print '#training images = %d' % len(train_dataset)
+    print('#training images = %d' % len(train_dataset))
     vis_inf = False
 
     test_dataset = AlignedIterator(testA, testB, batch_size=200)
-    print '#test images = %d' % len(test_dataset)
+    print('#test images = %d' % len(test_dataset))
 
     dev_dataset = AlignedIterator(devA, devB, batch_size=200)
-    print '#dev images = %d' % len(dev_dataset)
+    print('#dev images = %d' % len(dev_dataset))
 
     vis_inf = False
     if opt.model == 'stoch_cycle_gan':
@@ -254,12 +254,12 @@ def test_model():
     if opt.metric == 'bpp':
 
         if opt.train_logvar:
-            print "training logvar_B on training data..."
+            print("training logvar_B on training data...")
             logvar_B = train_logvar(train_dataset, model)
         else:
             logvar_B = None
 
-        print "evaluating on test set..."
+        print("evaluating on test set...")
         t = time.time()
         test_ubo_B, test_bpp_B, test_kld_B = eval_ubo_B(test_dataset, model, 500,
                                                         visualize=True, vis_name='test_pred_B',
@@ -268,12 +268,12 @@ def test_model():
                                                         verbose=True,
                                                         compute_l1=True)
 
-        print "TEST_BPP_B: %.4f, TIME: %.4f" % (test_bpp_B, time.time()-t)
+        print("TEST_BPP_B: %.4f, TIME: %.4f" % (test_bpp_B, time.time()-t))
 
     elif opt.metric == 'mse':
         dev_mse_A = eval_mse_A(dev_dataset, model)
         test_mse_A = eval_mse_A(test_dataset, model)
-        print "DEV_MSE_A: %.4f, TEST_MSE_A: %.4f" % (dev_mse_A, test_mse_A)
+        print("DEV_MSE_A: %.4f, TEST_MSE_A: %.4f" % (dev_mse_A, test_mse_A))
 
     elif opt.metric == 'visual':
         opt.num_multi = 5

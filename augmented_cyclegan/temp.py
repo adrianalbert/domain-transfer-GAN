@@ -53,7 +53,7 @@ def format_log(epoch, i, errors, t, prefix=True):
     message = '(epoch: %d, iters: %d, time: %.3f) ' % (epoch, i, t)
     if not prefix:
         message = ' ' * len(message)
-    for k, v in errors.items():
+    for k, v in list(errors.items()):
         message += '%s: %.3f ' % (k, v)
     return message
 
@@ -64,7 +64,7 @@ def tbviz_cycle(opt, real_A, real_B, gen_AB, gen_BA):
 def visualize_cycle(opt, real_A, visuals, eidx, uidx, train, writer):
     size = real_A.size()
 
-    images = [one_to_three_channels(img.cpu()).unsqueeze(1) for img in visuals.values()]
+    images = [one_to_three_channels(img.cpu()).unsqueeze(1) for img in list(visuals.values())]
     vis_image = torch.cat(images, dim=1).view(size[0]*len(images),size[1],size[2],size[3])
     if train:
         save_path = opt.train_vis_cycle
@@ -85,7 +85,7 @@ def visualize_multi(opt, real_A, model, eidx, uidx):
     multi_fake_B = model.generate_multi(real_A.detach(), multi_prior_z_B)
     multi_fake_B = multi_fake_B.data.cpu().view(
         size[0], opt.num_multi, 1, size[2], size[3])
-    print(real_A.shape, multi_fake_B.shape, real_A.data.cpu().unsqueeze(1).shape, multi_prior_z_B.shape)
+    print((real_A.shape, multi_fake_B.shape, real_A.data.cpu().unsqueeze(1).shape, multi_prior_z_B.shape))
     vis_multi_image = torch.cat([real_A.data.cpu().unsqueeze(2), multi_fake_B], dim=1) \
         .view(size[0]*(opt.num_multi+3),1,size[2],size[3])
     save_path = os.path.join(opt.vis_multi, 'multi_%02d_%04d.png' % (eidx, uidx))
@@ -153,7 +153,7 @@ def train_model():
     use_gpu = len(opt.gpu_ids) > 0
 
     if opt.seed is not None:
-        print("using random seed:", opt.seed)
+        print(("using random seed:", opt.seed))
         random.seed(opt.seed)
         np.random.seed(opt.seed)
         torch.manual_seed(opt.seed)
@@ -177,7 +177,7 @@ def train_model():
 
         dev_cycle = itertools.cycle(AlignedIterator(devA, devB, batch_size=25))
 
-    viz_data = viz_dataset.next()
+    viz_data = next(viz_dataset)
     viz_real_A, viz_real_B = Variable(viz_data['A']), Variable(viz_data['B'])
     viz_fake_A, viz_rec_A = viz_real_A, viz_real_B
     viz_fake_B, viz_rec_B = viz_real_B, viz_real_B
@@ -202,7 +202,7 @@ def train_model():
     # viz_fake_A = viz_fake_A.view(-1, viz_fake_A.shape[2], 3*viz_fake_A.shape[2])
     # viz_rec_A = viz_rec_A.view(-1, viz_rec_A.shape[2], 3*viz_rec_A.shape[2])
 
-    print(viz_real_A.shape, viz_fake_A.shape, viz_rec_A.shape, viz_real_B.shape, viz_fake_B.shape, viz_rec_B.shape)
+    print((viz_real_A.shape, viz_fake_A.shape, viz_rec_A.shape, viz_real_B.shape, viz_fake_B.shape, viz_rec_B.shape))
 
 
 

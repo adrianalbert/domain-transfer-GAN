@@ -1,0 +1,321 @@
+Station = Big_Meadow
+Lat = 39_455
+Lon = 119_9422
+Done Extracting Lat - 39_455 Lon - 119_9422
+ncl GAN_MAP_LATLON.ncl
+(0)	Big_Meadow_POINT_39_455to119_9422_4km_Livneh
+(0)	Minimum=0    Average=1.29401    Maximum=65.4402
+(0)	Lat 39.455 Index = 175
+(0)	Lon -119.9422 Index = 162
+(0)	Done Creating Plots and Calculating Statistics
+Station = Blue_Lakes
+Lat = 38_608
+Lon = 119_92437
+Done Extracting Lat - 38_608 Lon - 119_92437
+ncl GAN_MAP_LATLON.ncl
+(0)	Blue_Lakes_POINT_38_608to119_92437_4km_Livneh
+(0)	Minimum=0    Average=2.32406    Maximum=96.0475
+(0)	Lat 38.608 Index = 147
+(0)	Lon -119.92437 Index = 162
+(0)	Done Creating Plots and Calculating Statistics
+Station = Burnside_Lake
+Lat = 38_71943
+Lon = 119_8942
+Done Extracting Lat - 38_71943 Lon - 119_8942
+ncl GAN_MAP_LATLON.ncl
+(0)	Burnside_Lake_POINT_38_71943to119_8942_4km_Livneh
+(0)	Minimum=0    Average=1.51562    Maximum=66.3681
+(0)	Lat 38.71943 Index = 151
+(0)	Lon -119.8942 Index = 163
+(0)	Done Creating Plots and Calculating Statistics
+Station = Carson_Pass
+Lat = 38_6927
+Lon = 120_0022
+Done Extracting Lat - 38_6927 Lon - 120_0022
+ncl GAN_MAP_LATLON.ncl
+(0)	Carson_Pass_POINT_38_6927to120_0022_4km_Livneh
+(0)	Minimum=0    Average=2.11031    Maximum=79.5355
+(0)	Lat 38.6927 Index = 150
+(0)	Lon -120.0022 Index = 160
+(0)	Done Creating Plots and Calculating Statistics
+Station = Css_Lab
+Lat = 39_32565
+Lon = 120_36807
+Done Extracting Lat - 39_32565 Lon - 120_36807
+ncl GAN_MAP_LATLON.ncl
+(0)	Css_Lab_POINT_39_32565to120_36807_4km_Livneh
+(0)	Minimum=0    Average=4.0406    Maximum=141.727
+(0)	Lat 39.32565 Index = 170
+(0)	Lon -120.36807 Index = 148
+(0)	Done Creating Plots and Calculating Statistics
+Station = Ebbetts_Pass
+Lat = 38_5497
+Lon = 119_80468
+Done Extracting Lat - 38_5497 Lon - 119_80468
+ncl GAN_MAP_LATLON.ncl
+(0)	Ebbetts_Pass_POINT_38_5497to119_80468_4km_Livneh
+(0)	Minimum=0    Average=1.95527    Maximum=97.2084
+(0)	Lat 38.5497 Index = 146
+(0)	Lon -119.80468 Index = 166
+(0)	Done Creating Plots and Calculating Statistics
+Station = Echo_Peak
+Lat = 38_849
+Lon = 120_0795
+Done Extracting Lat - 38_849 Lon - 120_0795
+ncl GAN_MAP_LATLON.ncl
+(0)	Echo_Peak_POINT_38_849to120_0795_4km_Livneh
+(0)	Minimum=0    Average=2.8607    Maximum=132.055
+(0)	Lat 38.849 Index = 155
+(0)	Lon -120.0795 Index = 157
+(0)	Done Creating Plots and Calculating Statistics
+Station = Fallen_Leaf
+Lat = 38_93403
+Lon = 120_0545
+Done Extracting Lat - 38_93403 Lon - 120_0545
+ncl GAN_MAP_LATLON.ncl
+(0)	Fallen_Leaf_POINT_38_93403to120_0545_4km_Livneh
+(0)	Minimum=0    Average=2.15961    Maximum=104.889
+(0)	Lat 38.93403 Index = 158
+(0)	Lon -120.0545 Index = 158
+(0)	Done Creating Plots and Calculating Statistics
+Station = Forestdale_Creek
+Lat = 38_68245
+Lon = 119_9597
+Done Extracting Lat - 38_68245 Lon - 119_9597
+ncl GAN_MAP_LATLON.ncl
+(0)	Forestdale_Creek_POINT_38_68245to119_9597_4km_Livneh
+(0)	Minimum=0    Average=1.8853    Maximum=79.1802
+(0)	Lat 38.68245 Index = 150
+(0)	Lon -119.9597 Index = 161
+(0)	Done Creating Plots and Calculating Statistics
+Station = Hagans_Meadow
+Lat = 38_8519
+Lon = 119_9374
+Done Extracting Lat - 38_8519 Lon - 119_9374
+ncl GAN_MAP_LATLON.ncl
+(0)	Hagans_Meadow_POINT_38_8519to119_9374_4km_Livneh
+(0)	Minimum=0    Average=1.63033    Maximum=81.8212
+(0)	Lat 38.8519 Index = 155
+(0)	Lon -119.9374 Index = 162
+(0)	Done Creating Plots and Calculating Statistics
+Station = Heavenly_Valley
+Lat = 38_92431
+Lon = 119_91641
+Done Extracting Lat - 38_92431 Lon - 119_91641
+ncl GAN_MAP_LATLON.ncl
+(0)	Heavenly_Valley_POINT_38_92431to119_91641_4km_Livneh
+(0)	Minimum=0    Average=1.56201    Maximum=76.3659
+(0)	Lat 38.92431 Index = 158
+(0)	Lon -119.91641 Index = 163
+(0)	Done Creating Plots and Calculating Statistics
+Station = Horse_Meadow
+Lat = 38_83652
+Lon = 119_88732
+Done Extracting Lat - 38_83652 Lon - 119_88732
+ncl GAN_MAP_LATLON.ncl
+(0)	Horse_Meadow_POINT_38_83652to119_88732_4km_Livneh
+(0)	Minimum=0    Average=1.52086    Maximum=72.3968
+(0)	Lat 38.83652 Index = 155
+(0)	Lon -119.88732 Index = 164
+(0)	Done Creating Plots and Calculating Statistics
+Station = Independence_Camp
+Lat = 39_45269
+Lon = 120_29367
+Done Extracting Lat - 39_45269 Lon - 120_29367
+ncl GAN_MAP_LATLON.ncl
+(0)	Independence_Camp_POINT_39_45269to120_29367_4km_Livneh
+(0)	Minimum=0    Average=2.45337    Maximum=91.2942
+(0)	Lat 39.45269 Index = 174
+(0)	Lon -120.29367 Index = 151
+(0)	Done Creating Plots and Calculating Statistics
+Station = Independence_Creek
+Lat = 39_49001
+Lon = 120_28226
+Done Extracting Lat - 39_49001 Lon - 120_28226
+ncl GAN_MAP_LATLON.ncl
+(0)	Independence_Creek_POINT_39_49001to120_28226_4km_Livneh
+(0)	Minimum=0    Average=2.08479    Maximum=78.7244
+(0)	Lat 39.49001 Index = 176
+(0)	Lon -120.28226 Index = 151
+(0)	Done Creating Plots and Calculating Statistics
+Station = Independence_Lake
+Lat = 39_42752
+Lon = 120_31342
+Done Extracting Lat - 39_42752 Lon - 120_31342
+ncl GAN_MAP_LATLON.ncl
+(0)	Independence_Lake_POINT_39_42752to120_31342_4km_Livneh
+(0)	Minimum=0    Average=2.95887    Maximum=111.948
+(0)	Lat 39.42752 Index = 174
+(0)	Lon -120.31342 Index = 150
+(0)	Done Creating Plots and Calculating Statistics
+Station = Leavitt_Lake
+Lat = 38_27594
+Lon = 119_61281
+Done Extracting Lat - 38_27594 Lon - 119_61281
+ncl GAN_MAP_LATLON.ncl
+(0)	Leavitt_Lake_POINT_38_27594to119_61281_4km_Livneh
+(0)	Minimum=0    Average=3.38269    Maximum=109.021
+(0)	Lat 38.27594 Index = 137
+(0)	Lon -119.61281 Index = 172
+(0)	Done Creating Plots and Calculating Statistics
+Station = Leavitt_Meadows
+Lat = 38_30367
+Lon = 119_55111
+Done Extracting Lat - 38_30367 Lon - 119_55111
+ncl GAN_MAP_LATLON.ncl
+(0)	Leavitt_Meadows_POINT_38_30367to119_55111_4km_Livneh
+(0)	Minimum=0    Average=2.56528    Maximum=85.0212
+(0)	Lat 38.30367 Index = 138
+(0)	Lon -119.55111 Index = 174
+(0)	Done Creating Plots and Calculating Statistics
+Station = Little_Valley
+Lat = 39_25259
+Lon = 119_8771
+Done Extracting Lat - 39_25259 Lon - 119_8771
+ncl GAN_MAP_LATLON.ncl
+(0)	Little_Valley_POINT_39_25259to119_8771_4km_Livneh
+(0)	Minimum=0    Average=1.71569    Maximum=83.1544
+(0)	Lat 39.25259 Index = 168
+(0)	Lon -119.8771 Index = 164
+(0)	Done Creating Plots and Calculating Statistics
+Station = Lobdell_Lake
+Lat = 38_43745
+Lon = 119_36572
+Done Extracting Lat - 38_43745 Lon - 119_36572
+ncl GAN_MAP_LATLON.ncl
+(0)	Lobdell_Lake_POINT_38_43745to119_36572_4km_Livneh
+(0)	Minimum=0    Average=1.53829    Maximum=71.5826
+(0)	Lat 38.43745 Index = 142
+(0)	Lon -119.36572 Index = 180
+(0)	Done Creating Plots and Calculating Statistics
+Station = Marlette_Lake
+Lat = 39_16395
+Lon = 119_89672
+Done Extracting Lat - 39_16395 Lon - 119_89672
+ncl GAN_MAP_LATLON.ncl
+(0)	Marlette_Lake_POINT_39_16395to119_89672_4km_Livneh
+(0)	Minimum=0    Average=1.86934    Maximum=89.7982
+(0)	Lat 39.16395 Index = 165
+(0)	Lon -119.89672 Index = 163
+(0)	Done Creating Plots and Calculating Statistics
+Station = Monitor_Pass
+Lat = 38_6683
+Lon = 119_6087
+Done Extracting Lat - 38_6683 Lon - 119_6087
+ncl GAN_MAP_LATLON.ncl
+(0)	Monitor_Pass_POINT_38_6683to119_6087_4km_Livneh
+(0)	Minimum=0    Average=0.706889    Maximum=58.0259
+(0)	Lat 38.6683 Index = 149
+(0)	Lon -119.6087 Index = 173
+(0)	Done Creating Plots and Calculating Statistics
+Station = Mt_Rose_Ski_Area
+Lat = 39_31573
+Lon = 119_89473
+Done Extracting Lat - 39_31573 Lon - 119_89473
+ncl GAN_MAP_LATLON.ncl
+(0)	Mt_Rose_Ski_Area_POINT_39_31573to119_89473_4km_Livneh
+(0)	Minimum=0    Average=2.5609    Maximum=117.239
+(0)	Lat 39.31573 Index = 170
+(0)	Lon -119.89473 Index = 163
+(0)	Done Creating Plots and Calculating Statistics
+Station = Poison_Flat
+Lat = 38_50576
+Lon = 119_62624
+Done Extracting Lat - 38_50576 Lon - 119_62624
+ncl GAN_MAP_LATLON.ncl
+(0)	Poison_Flat_POINT_38_50576to119_62624_4km_Livneh
+(0)	Minimum=0    Average=1.36538    Maximum=61.9689
+(0)	Lat 38.50576 Index = 144
+(0)	Lon -119.62624 Index = 172
+(0)	Done Creating Plots and Calculating Statistics
+Station = Rubicon_2
+Lat = 38_99927
+Lon = 120_13139
+Done Extracting Lat - 38_99927 Lon - 120_13139
+ncl GAN_MAP_LATLON.ncl
+(0)	Rubicon_2_POINT_38_99927to120_13139_4km_Livneh
+(0)	Minimum=0    Average=2.61596    Maximum=107.506
+(0)	Lat 38.99927 Index = 160
+(0)	Lon -120.13139 Index = 156
+(0)	Done Creating Plots and Calculating Statistics
+Station = Sonora_Pass
+Lat = 38_31021
+Lon = 119_6003
+Done Extracting Lat - 38_31021 Lon - 119_6003
+ncl GAN_MAP_LATLON.ncl
+(0)	Sonora_Pass_POINT_38_31021to119_6003_4km_Livneh
+(0)	Minimum=0    Average=2.83527    Maximum=94.8889
+(0)	Lat 38.31021 Index = 138
+(0)	Lon -119.6003 Index = 173
+(0)	Done Creating Plots and Calculating Statistics
+Station = Spratt_Creek
+Lat = 38_66627
+Lon = 119_81741
+Done Extracting Lat - 38_66627 Lon - 119_81741
+ncl GAN_MAP_LATLON.ncl
+(0)	Spratt_Creek_POINT_38_66627to119_81741_4km_Livneh
+(0)	Minimum=0    Average=1.32107    Maximum=74.9203
+(0)	Lat 38.66627 Index = 149
+(0)	Lon -119.81741 Index = 166
+(0)	Done Creating Plots and Calculating Statistics
+Station = Squaw_Valley_G_C_
+Lat = 39_18986
+Lon = 120_26576
+Done Extracting Lat - 39_18986 Lon - 120_26576
+ncl GAN_MAP_LATLON.ncl
+(0)	Squaw_Valley_G_C__POINT_39_18986to120_26576_4km_Livneh
+(0)	Minimum=0    Average=4.02188    Maximum=155.893
+(0)	Lat 39.18986 Index = 166
+(0)	Lon -120.26576 Index = 151
+(0)	Done Creating Plots and Calculating Statistics
+Station = Summit_Meadow
+Lat = 38_39747
+Lon = 119_53522
+Done Extracting Lat - 38_39747 Lon - 119_53522
+ncl GAN_MAP_LATLON.ncl
+(0)	Summit_Meadow_POINT_38_39747to119_53522_4km_Livneh
+(0)	Minimum=0    Average=1.72336    Maximum=67.107
+(0)	Lat 38.39747 Index = 141
+(0)	Lon -119.53522 Index = 175
+(0)	Done Creating Plots and Calculating Statistics
+Station = Tahoe_City_Cross
+Lat = 39_17162
+Lon = 120_15362
+Done Extracting Lat - 39_17162 Lon - 120_15362
+ncl GAN_MAP_LATLON.ncl
+(0)	Tahoe_City_Cross_POINT_39_17162to120_15362_4km_Livneh
+(0)	Minimum=0    Average=2.29209    Maximum=95.0297
+(0)	Lat 39.17162 Index = 165
+(0)	Lon -120.15362 Index = 155
+(0)	Done Creating Plots and Calculating Statistics
+Station = Truckee_2
+Lat = 39_30087
+Lon = 120_18407
+Done Extracting Lat - 39_30087 Lon - 120_18407
+ncl GAN_MAP_LATLON.ncl
+(0)	Truckee_2_POINT_39_30087to120_18407_4km_Livneh
+(0)	Minimum=0    Average=2.23656    Maximum=86.8119
+(0)	Lat 39.30087 Index = 170
+(0)	Lon -120.18407 Index = 154
+(0)	Done Creating Plots and Calculating Statistics
+Station = Virginia_Lakes_Ridge
+Lat = 38_07298
+Lon = 119_23433
+Done Extracting Lat - 38_07298 Lon - 119_23433
+ncl GAN_MAP_LATLON.ncl
+(0)	Virginia_Lakes_Ridge_POINT_38_07298to119_23433_4km_Livneh
+(0)	Minimum=0    Average=1.67809    Maximum=75.7018
+(0)	Lat 38.07298 Index = 130
+(0)	Lon -119.23433 Index = 185
+(0)	Done Creating Plots and Calculating Statistics
+Station = Ward_Creek_3
+Lat = 39_13545
+Lon = 120_21865
+Done Extracting Lat - 39_13545 Lon - 120_21865
+ncl GAN_MAP_LATLON.ncl
+(0)	Ward_Creek_3_POINT_39_13545to120_21865_4km_Livneh
+(0)	Minimum=0    Average=3.81462    Maximum=154.033
+(0)	Lat 39.13545 Index = 164
+(0)	Lon -120.21865 Index = 153
+(0)	Done Creating Plots and Calculating Statistics
+Elapsed timeframe = 3 seconds

@@ -13,7 +13,7 @@ DEV_SIZE = 200
 def load_numpy_data(root, shuffle=True, grid_size=None):
     """loads in memory numpy data files"""
     def _load(fname):
-        print "Loading %s" % root
+        print("Loading %s" % root)
         arr = np.load(os.path.join(root, fname))['data'][...,:3]
         # replace NaNs with 0
         arr = np.nan_to_num(arr)
@@ -25,7 +25,7 @@ def load_numpy_data(root, shuffle=True, grid_size=None):
         arr = np.nan_to_num(arr); arr[arr == inf] = 0; arr[arr == -inf] = 0
         if grid_size is not None:
             new_arr = []
-            print "Resizing data to %d" % grid_size
+            print("Resizing data to %d" % grid_size)
             for x in arr:
                 new_arr.append(resize(x, (grid_size,grid_size)))
             arr = np.stack(new_arr)
@@ -33,18 +33,18 @@ def load_numpy_data(root, shuffle=True, grid_size=None):
         arr = np.transpose(arr, (0,3,1,2))
         return arr.astype('float32')
 
-    print "loading data numpy files..."
+    print("loading data numpy files...")
     trainA = _load("trainA.npz")
     trainB = _load("trainB.npz")
     testA  = _load("testA.npz")
     testB  = _load("testB.npz")
-    print "done."
+    print("done.")
 
     # shuffle train data
     if shuffle:
         rand_state = random.getstate()
         random.seed(123)
-        indx = range(len(trainA))
+        indx = list(range(len(trainA)))
         random.shuffle(indx)
         trainA = trainA[indx]
         trainB = trainB[indx]
@@ -94,7 +94,7 @@ class AlignedIterator(object):
             self.data_indices = np.arange(self.num_samples)
         self.batch_idx = 0
 
-    def next(self):
+    def __next__(self):
         if self.batch_idx == self.n_batches:
             self.reset()
             raise StopIteration
@@ -135,7 +135,7 @@ class UnalignedIterator(object):
         self.data_indices = [np.random.permutation(self.num_samples) for _ in range(2)]
         self.batch_idx = 0
 
-    def next(self):
+    def __next__(self):
         if self.batch_idx == self.n_batches:
             self.reset()
             raise StopIteration
@@ -178,7 +178,7 @@ class NumpyDataset(object):
         # shuffle data
         rand_state = random.getstate()
         random.seed(123)
-        indx = range(len(self.A_paths))
+        indx = list(range(len(self.A_paths)))
         random.shuffle(indx)
         self.A_paths = [self.A_paths[i] for i in indx]
         self.B_paths = [self.B_paths[i] for i in indx]
@@ -205,7 +205,7 @@ class NumpyDataset(object):
                     mem_B_paths.append(np.load(fb)['data'])
             self.A_paths = mem_A_paths
             self.B_paths = mem_B_paths
-            print len(self.A_paths), self.A_paths[0]
+            print(len(self.A_paths), self.A_paths[0])
 
         self.A_size = len(self.A_paths)
         self.B_size = len(self.B_paths)
@@ -219,7 +219,7 @@ class NumpyDataset(object):
             index_B = index % self.A_size
         B_path = self.B_paths[index_B]
         # print('(A, B) = (%d, %d)' % (index_A, index_B))
-        print A_path, B_path
+        print(A_path, B_path)
         A_img = np.load(A_path)['data']
         B_img = np.load(B_path)['data']
 

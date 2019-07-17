@@ -1,0 +1,58 @@
+batchSize = [8, 16, 32, 64]
+lambdaL1 = [1, 10, 100]
+ndf = [16, 32, 64]
+ngf = [8, 16, 32]
+
+lambdaHeight = [0, 1, 10]
+------------ Options -------------
+batchSize: 32
+beta1: 0.5
+checkpoints_dir: ./checkpoints/
+continue_train: False
+dataroot: ../datasets/livneh/
+display_freq: 1000
+enc_A_B: 1
+epoch_count: 1
+eval_A_freq: 1
+eval_B_freq: 1
+expr_dir: ./checkpoints/augcgan_model
+gpu_ids: [0]
+grid_size: 64
+input_nc: 6
+lambdaHeight: 1
+lambdaL1: 100
+lambdaOcean: 1000
+lambda_A: 1.0
+lambda_B: 1.0
+lambda_sup_A: 0.1
+lambda_sup_B: 0.1
+lambda_z_B: 0.025
+lr: 0.0002
+max_gnorm: 500.0
+model: aug_cycle_gan
+monitor_gnorm: True
+name: augcgan_model
+ndf: 32
+nef: 16
+ngf: 16
+niter: 25
+niter_decay: 25
+nlatent: 16
+no_lsgan: False
+norm: instance
+num_multi: 10
+numpy_data: 1
+output_nc: 1
+print_freq: 100
+save_epoch_freq: 5
+seed: None
+stoch_enc: False
+sup_frac: 0.1
+supervised: False
+tbpath: tbviz/temp
+use_dropout: False
+which_epoch: latest
+which_model_netD: basic
+which_model_netG: resnet
+z_gan: 1
+-------------- End ----------------

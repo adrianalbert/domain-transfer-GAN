@@ -111,7 +111,7 @@ def variational_ubo(model, real_A, real_B, steps, visualize=False, vis_name=None
             res_str = '[%d] UBO: %.4f, KLD: %.4f, BPP: %.4f' % (i, ubo_val_new, kld_val, bpp)
             if compute_l1:
                 res_str = '%s, L1: %.4f' % (res_str, l1_loss)
-            print res_str
+            print(res_str)
 
         # if ubo_val is not None and abs(ubo_val - ubo_val_new) < 1e-4:
         #     return ubo_val_new, kld_val, bpp

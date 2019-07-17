@@ -1,7 +1,9 @@
 import argparse
 import os
 import torch
-import cPickle as pkl
+import pickle as pkl
+import json
+
 
 
 def create_sub_dirs(opt, sub_dirs):
@@ -73,8 +75,19 @@ class TrainOptions(object):
         self.parser.add_argument('--lambda_A', type=float, default=1.0, help='weight for cycle loss (A -> B -> A)')
         self.parser.add_argument('--lambda_B', type=float, default=1.0, help='weight for cycle loss (B -> A -> B)')
         self.parser.add_argument('--lambda_z_B', type=float, default=0.025, help='weight for cycle loss (B -> A -> B)')
-        self.parser.add_argument('--lambdaL1', type=float, default=100, help = 'L1 recreation loss coefficient')
-        self.parser.add_argument('--lambdaOcean', type=float, default=1000, help = 'coefficient for the ocean penalty mask')
+        self.parser.add_argument('--lambda_L1', type=float, default=10, help = 'L1 recreation loss coefficient')
+        self.parser.add_argument('--lambda_Ocean', type=float, default=1000, help = 'coefficient for the ocean penalty mask')
+        self.parser.add_argument('--lambda_Height', type=float, default = 1, help = 'coefficient for height based loss weighting')
+        self.parser.add_argument('--lambda_Snow', type=float, default = 0.0001, help = 'coefficient for total snow loss')
+
+
+        #fields
+        self.parser.add_argument('--f0', type=int, default=1, help='Whether to use the first input field')
+        self.parser.add_argument('--f1', type=int, default=1, help='Whether to use the second input field')
+        self.parser.add_argument('--f2', type=int, default=1, help='Whether to use the third input field')
+        self.parser.add_argument('--f3', type=int, default=1, help='Whether to use the fourth input field')
+        self.parser.add_argument('--f4', type=int, default=1, help='Whether to use the fifth input field')
+        self.parser.add_argument('--f5', type=int, default=1, help='Whether to use the sixth input field')
 
         # monitoring
         self.parser.add_argument('--monitor_gnorm', type=bool, default=True, help='flag set to monitor grad norms')
@@ -111,7 +124,7 @@ class TrainOptions(object):
 
         print('------------ Options -------------')
         for k, v in sorted(args.items()):
-            print('%s: %s' % (str(k), str(v)))
+            print(('%s: %s' % (str(k), str(v))))
         print('-------------- End ----------------')
         if not os.path.exists(expr_dir):
             os.makedirs(expr_dir)
@@ -124,7 +137,7 @@ class TrainOptions(object):
             opt_file.write('-------------- End ----------------\n')
 
         file_name = os.path.join(expr_dir, 'opt.pkl')
-        with open(file_name, 'w') as opt_file:
+        with open(file_name, 'wb') as opt_file:
             pkl.dump(args, opt_file)
 
         # create sub dirs

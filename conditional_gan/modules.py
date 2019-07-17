@@ -48,7 +48,7 @@ class TwoInputSequential(nn.Sequential, TwoInputModule):
     def forward(self, input1, input2):
         """overloads forward function in parent calss"""
 
-        for module in self._modules.values():
+        for module in list(self._modules.values()):
             if isinstance(module, TwoInputModule):
                 input1 = module.forward(input1, input2)
             else:

@@ -287,7 +287,7 @@ class StochCycleGAN(object):
         for param_group in self.optimizer_G.param_groups:
             param_group['lr'] = lr
 
-        print('update learning rate: %f -> %f' % (self.old_lr, lr))
+        print(('update learning rate: %f -> %f' % (self.old_lr, lr)))
         self.old_lr = lr
 
     def save(self, chk_name):
@@ -745,7 +745,7 @@ class AugmentedCycleGAN(object):
         for param_group in self.optimizer_G_B.param_groups:
             param_group['lr'] = lr
 
-        print('update learning rate: %f -> %f' % (self.old_lr, lr))
+        print(('update learning rate: %f -> %f' % (self.old_lr, lr)))
         self.old_lr = lr
 
     def save(self, chk_name):

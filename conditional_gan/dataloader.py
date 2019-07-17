@@ -1,5 +1,7 @@
 import torch
 import torch.utils.data
+from torch.utils import data
+
 import os.path
 import random
 import torchvision.transforms as transforms
@@ -10,11 +12,15 @@ from skimage.transform import resize
 
 DEV_SIZE = 200
 
+
+
+
 def load_numpy_data(root, shuffle=True, grid_size=None):
     """loads in memory numpy data files"""
     def _load(fname):
-        print "Loading %s" % root
-        arr = np.load(os.path.join(root, fname))['data'][...,:3]
+        print("Loading %s" % root)
+        arr = np.load(os.path.join(root, fname))['data'][...,:6]
+        print((arr.shape))
         # replace NaNs with 0
         arr = np.nan_to_num(arr)
         if arr.ndim == 3:
@@ -23,9 +29,17 @@ def load_numpy_data(root, shuffle=True, grid_size=None):
         # scale and shift to [-1,1]
         arr = -1 + 2 * (arr - arr.min((1,2))[:, np.newaxis,np.newaxis]) / (arr.max((1,2))[:, np.newaxis,np.newaxis] - arr.min((1,2))[:, np.newaxis,np.newaxis])
         arr[np.isnan(arr)] = -1; arr[arr == inf] = -1; arr[arr == -inf] = -1
+
+        # arr[...:0] = opt.f0 * arr[...:0]
+        # arr[...:1] = opt.f1 * arr[...:1]
+        # arr[...:2] = opt.f2 * arr[...:2]
+        # arr[...:3] = opt.f3 * arr[...:3]
+        # arr[...:4] = opt.f4 * arr[...:4]
+        # arr[...:5] = opt.f5 * arr[...:5]
+
         if grid_size is not None:
             new_arr = []
-            print "Resizing data to %d" % grid_size
+            print("Resizing data to %d" % grid_size)
             for x in arr:
                 new_arr.append(resize(x, (grid_size,grid_size)))
             arr = np.stack(new_arr)
@@ -33,18 +47,18 @@ def load_numpy_data(root, shuffle=True, grid_size=None):
         arr = np.transpose(arr, (0,3,1,2))
         return arr.astype('float32')
 
-    print "loading data numpy files..."
+    print("loading data numpy files...")
     trainA = _load("trainA.npz")
     trainB = _load("trainB.npz")
     testA  = _load("testA.npz")
     testB  = _load("testB.npz")
-    print "done."
+    print("done.")
 
     # shuffle train data
     if shuffle:
         rand_state = random.getstate()
         random.seed(123)
-        indx = range(len(trainA))
+        indx = list(range(len(trainA)))
         random.shuffle(indx)
         trainA = trainA[indx]
         trainB = trainB[indx]
@@ -74,7 +88,7 @@ class AlignedIterator(object):
         batch_size = kwargs.get('batch_size', 100)
         shuffle = kwargs.get('shuffle', False)
 
-        self.n_batches = self.num_samples / batch_size
+        self.n_batches = self.num_samples // batch_size
         if self.num_samples % batch_size != 0:
             self.n_batches += 1
 
@@ -94,10 +108,11 @@ class AlignedIterator(object):
             self.data_indices = np.arange(self.num_samples)
         self.batch_idx = 0
 
-    def next(self):
+    def __next__(self):
         if self.batch_idx == self.n_batches:
             self.reset()
             raise StopIteration
+
 
         idx = self.batch_idx * self.batch_size
         chosen_indices = self.data_indices[idx:idx+self.batch_size]
@@ -122,7 +137,7 @@ class UnalignedIterator(object):
         self.num_samples = data_A.shape[0]
 
         self.batch_size = kwargs.get('batch_size', 100)
-        self.n_batches = self.num_samples / self.batch_size
+        self.n_batches = self.num_samples // self.batch_size
         if self.num_samples % self.batch_size != 0:
             self.n_batches += 1
 
@@ -135,7 +150,7 @@ class UnalignedIterator(object):
         self.data_indices = [np.random.permutation(self.num_samples) for _ in range(2)]
         self.batch_idx = 0
 
-    def next(self):
+    def __next__(self):
         if self.batch_idx == self.n_batches:
             self.reset()
             raise StopIteration
@@ -178,7 +193,7 @@ class NumpyDataset(object):
         # shuffle data
         rand_state = random.getstate()
         random.seed(123)
-        indx = range(len(self.A_paths))
+        indx = list(range(len(self.A_paths)))
         random.shuffle(indx)
         self.A_paths = [self.A_paths[i] for i in indx]
         self.B_paths = [self.B_paths[i] for i in indx]
@@ -205,7 +220,7 @@ class NumpyDataset(object):
                     mem_B_paths.append(np.load(fb)['data'])
             self.A_paths = mem_A_paths
             self.B_paths = mem_B_paths
-            print len(self.A_paths), self.A_paths[0]
+            print(len(self.A_paths), self.A_paths[0])
 
         self.A_size = len(self.A_paths)
         self.B_size = len(self.B_paths)
@@ -219,7 +234,7 @@ class NumpyDataset(object):
             index_B = index % self.A_size
         B_path = self.B_paths[index_B]
         # print('(A, B) = (%d, %d)' % (index_A, index_B))
-        print A_path, B_path
+        print(A_path, B_path)
         A_img = np.load(A_path)['data']
         B_img = np.load(B_path)['data']
 
@@ -234,7 +249,7 @@ class NumpyDataset(object):
 
 class DataLoader(object):
     def __init__(self, opt, subset, unaligned, batchSize,
-                 shuffle=False, fraction=1., load_in_mem=True, drop_last=False):
+                 shuffle=False, fraction=1., load_in_mem=False, drop_last=False):
         self.opt = opt
         self.dataset = NumpyDataset(opt, subset, unaligned, fraction, load_in_mem)
         self.dataloader = torch.utils.data.DataLoader(

@@ -55,7 +55,7 @@ def format_log(epoch, i, errors, t, prefix=True):
     message = '(epoch: %d, iters: %d, time: %.3f) ' % (epoch, i, t)
     if not prefix:
         message = ' ' * len(message)
-    for k, v in errors.items():
+    for k, v in list(errors.items()):
         message += '%s: %.3f ' % (k, v)
     return message
 
@@ -66,7 +66,7 @@ def tbviz_cycle(opt, real_A, real_B, gen_AB, gen_BA):
 def visualize_cycle(opt, real_A, visuals, eidx, uidx, train, writer):
     size = real_A.size()
 
-    images = [one_to_three_channels(img.cpu()).unsqueeze(1) for img in visuals.values()]
+    images = [one_to_three_channels(img.cpu()).unsqueeze(1) for img in list(visuals.values())]
     vis_image = torch.cat(images, dim=1).view(size[0]*len(images),size[1],size[2],size[3])
     if train:
         save_path = opt.train_vis_cycle
@@ -87,7 +87,7 @@ def visualize_multi(opt, real_A, model, eidx, uidx):
     multi_fake_B = model.generate_multi(real_A.detach(), multi_prior_z_B)
     multi_fake_B = multi_fake_B.data.cpu().view(
         size[0], opt.num_multi, 1, size[2], size[3])
-    print(real_A.shape, multi_fake_B.shape, real_A.data.cpu().unsqueeze(1).shape, multi_prior_z_B.shape)
+    print((real_A.shape, multi_fake_B.shape, real_A.data.cpu().unsqueeze(1).shape, multi_prior_z_B.shape))
     vis_multi_image = torch.cat([real_A.data.cpu().unsqueeze(2), multi_fake_B], dim=1) \
         .view(size[0]*(opt.num_multi+3),1,size[2],size[3])
     save_path = os.path.join(opt.vis_multi, 'multi_%02d_%04d.png' % (eidx, uidx))
@@ -150,7 +150,7 @@ def plot_to_tensorboard(writer, name, fig, step):
 def hist_kl_div(tenA, tenB, numbins):
     min_elem = min(torch.min(tenA).item(), torch.min(tenB).item())
     max_elem = max(torch.max(tenA).item(), torch.max(tenB).item())
-    print(min_elem, max_elem)
+    print((min_elem, max_elem))
     histA = torch.histc(tenA.cpu(), numbins, min_elem, max_elem)
     histB = torch.histc(tenB.cpu(), numbins, min_elem, max_elem)
     eps = 1e-4
@@ -168,7 +168,7 @@ def train_model():
     use_gpu = len(opt.gpu_ids) > 0
 
     if opt.seed is not None:
-        print("using random seed:", opt.seed)
+        print(("using random seed:", opt.seed))
         random.seed(opt.seed)
         np.random.seed(opt.seed)
         torch.manual_seed(opt.seed)
@@ -287,7 +287,7 @@ def train_model():
 
             # supervised trainings hare tensr
             if opt.supervised:
-                sup_data = sup_train_dataset.next()
+                sup_data = next(sup_train_dataset)
                 sup_real_A, sup_real_B = Variable(sup_data['A']), Variable(sup_data['B'])
                 if use_gpu:
                     sup_real_A, sup_real_B = sup_real_A.cuda(), sup_real_B.cuda()
@@ -299,7 +299,7 @@ def train_model():
                 # visualize current training batch
                 #visualize_cycle(opt, real_A, visuals, epoch, epoch_iter/opt.batchSize, train=True)
 
-                dev_data = dev_cycle.next()
+                dev_data = next(dev_cycle)
                 dev_real_A, dev_real_B = Variable(dev_data['A']), Variable(dev_data['B'])
                 dev_prior_z_B = Variable(dev_real_A.data.new(dev_real_A.size(0),
                                                              opt.nlatent, 1, 1).normal_(0, 1))
@@ -314,7 +314,7 @@ def train_model():
 
 
 
-                viz_data = viz_dataset.next()
+                viz_data = next(viz_dataset)
                 viz_real_A, viz_real_B = Variable(viz_data['A']), Variable(viz_data['B'])
                 viz_prior_z_B = Variable(viz_real_A.data.new(viz_real_A.size(0), opt.nlatent, 1, 1).normal_(0, 1))
                 if use_gpu:
